@@ -320,6 +320,33 @@ def verify_packet(packet, j_type):
         return True, None
 
 
+def generate_error_packet(code, response_id=None):
+    """
+    Generate a JSON-RPC predefined error packet from a JSON-RPC predefined
+    error code
+
+    Returns None if code doesn't match any JSON-RPC predefined codes
+
+    Parameters:
+        - 'code':           REQUIRED - JSON-RPC predefined error code for the
+                                        error to create
+                                        Can be code (int), or message (str)
+        - 'response_id':    ID of message you're responding to, default None
+    """
+    if isinstance(code, str):
+        for error in JSON_RPC_PREDEFINED_ERRORS:
+            if code == JSON_RPC_PREDEFINED_ERRORS[error]:
+                return JSONRPCError(int(error),
+                                    code,
+                                    response_id=response_id
+                                   ).packet
+    elif isinstance(code, int):
+        return JSONRPCError(code,
+                            JSON_RPC_PREDEFINED_ERRORS[str(code)],
+                            response_id=response_id
+                           ).packet
+
+
 class JSONRPCException(Exception):
     """
     Custom exception used within JSONRPCResult and JSONRPCError
@@ -338,14 +365,97 @@ class JSONRPCException(Exception):
             self.message)
 
 
+class JSONRPCRequest:
+    """
+    JSON-RPC Request object
+
+    Arguments:
+        'response_id':  REQUIRED unless you're making a notification packet,
+                            then it MUST BE None
+        'method':       REQUIRED, str of remote method that the server will
+                            execute
+        'parameters':   OPTIONAL, must be type list or dict
+    """
+    response_id = 0
+    packet = {
+        "jsonrpc": "2.0",        # Default required key/value pair for JSON-RPC
+        "id": response_id
+    }
+
+    def __init__(self, method, params=None, response_id=None):
+        """
+        Create a JSON-RPC Request object
+        Returns nothing on success, otherwise JSONRPCException is raised
+        """
+        self.type = "Request"
+
+        # Set the packet's ID correctly, or raise exception if not int/None
+        if isinstance(response_id, int):
+            self.response_id = response_id
+            self.packet["id"] = self.response_id
+        elif response_id is None:
+            self.response_id = None
+            self.packet["id"] = self.response_id
+        else:
+            raise JSONRPCException("Unexpected data type for argument"
+                                   " 'response_id': '{}'. Must be type"
+                                   " int".format(type(response_id)))
+        if isinstance(method, str):
+            self.method = method
+        else:
+            raise JSONRPCException("Unexpected data type for argument"
+                                   " 'method': '{}'. Must be type"
+                                   " str".format(type(method)))
+        if params is not None:
+            if isinstance(params, (str, dict)):
+                success, data = _check_valid_json(params)
+                if success:
+                    self.params = data
+            elif isinstance(params, list):
+                self.params = params
+            else:
+                raise JSONRPCException("Unexpected data type for argument"
+                                       " 'params': '{}'. Must be type list or"
+                                       " dict".format(type(params)))
+
+        # Made it passed the if statement successfully, let's create the packet
+        self.packet["method"] = self.method
+        self.packet["params"] = self.params
+
+    def return_packet(self):
+        """
+        Simple method to satisfy pylint
+        Just returns the JSON-RPC packet
+        """
+        return self.packet
+
+    def update_packet(self, **kwargs):
+        """
+        Allows you to update the packet's key/data pairs via a method
+        """
+        for arg in kwargs:
+            if arg in self.packet:
+                self.packet[arg] = kwargs[arg]
+            elif arg in self.packet["result"]:
+                self.packet["result"][arg] = kwargs[arg]
+
+    def __repr__(self):
+        return "JSON-RPC Request: {}".format(repr(self.method))
+
+    def __str__(self):
+        return "<JSON-RPC {type} object - {id}>".format(
+            type=self.type,
+            id=self.response_id)
+
+
 class JSONRPCResult:
     """
     JSON-RPC Result object
 
     Arguments:
-        'id':       REQUIRED, otherwise it will be set to None/NULL
-        'result':   Required when creating a JSON-RPC Result object
-                        MUST be type dict or str (JSON encoded)
+        'response_id':  REQUIRED, otherwise it will be set to None/NULL
+        'result':       Required when creating a JSON-RPC Result object
+                            MUST be type dict or str (JSON encoded)
     """
     response_id = 0
     packet = {
@@ -358,9 +468,19 @@ class JSONRPCResult:
         Create a JSON-RPC Result object
         Returns nothing on success, otherwise JSONRPCException is raised
         """
-        self.response_id = response_id
-        self.packet["id"] = self.response_id
         self.type = "Result"
+
+        # Set the packet's ID correctly, or raise exception if not int/None
+        if isinstance(response_id, int):
+            self.response_id = response_id
+            self.packet["id"] = self.response_id
+        elif response_id is None:
+            self.response_id = None
+            self.packet["id"] = self.response_id
+        else:
+            raise JSONRPCException("Unexpected data type for argument"
+                                   " 'response_id': '{}'. Must be type"
+                                   " int".format(type(response_id)))
 
         if isinstance(result, dict):
             self.data = result
@@ -375,7 +495,7 @@ class JSONRPCResult:
                 str(type(result))
             ))
 
-        # Made it passed the if statement successfully, let's create the packet
+        # Made it past the if statement successfully, let's create the packet
         self.packet["result"] = self.data
 
     def return_packet(self):
@@ -428,9 +548,19 @@ class JSONRPCError:
         Create a JSON-RPC Error object
         Returns nothing on success, otherwise JSONRPCException is raised
         """
-        self.response_id = response_id
-        self.packet["id"] = self.response_id
         self.type = "Error"
+
+        # Set the packet's ID correctly, or raise exception if not int/None
+        if isinstance(response_id, int):
+            self.response_id = response_id
+            self.packet["id"] = self.response_id
+        elif response_id is None:
+            self.response_id = None
+            self.packet["id"] = self.response_id
+        else:
+            raise JSONRPCException("Unexpected data type for argument"
+                                   " 'response_id': '{}'. Must be type"
+                                   " int".format(type(response_id)))
 
         if isinstance(code, int) is not True or code is None:
             raise JSONRPCException("code parameter for error MUST be type  \
@@ -494,30 +624,3 @@ class JSONRPCError:
         return "<JSON-RPC {type} object - {id}>".format(
             type=self.type,
             id=self.response_id)
-
-
-def generate_error_packet(code, response_id=None):
-    """
-    Generate a JSON-RPC predefined error packet from a JSON-RPC predefined
-    error code
-
-    Returns None if code doesn't match any JSON-RPC predefined codes
-
-    Parameters:
-        - 'code':           REQUIRED - JSON-RPC predefined error code for the
-                                        error to create
-                                        Can be code (int), or message (str)
-        - 'response_id':    ID of message you're responding to, default None
-    """
-    if isinstance(code, str):
-        for error in JSON_RPC_PREDEFINED_ERRORS:
-            if code == JSON_RPC_PREDEFINED_ERRORS[error]:
-                return JSONRPCError(int(error),
-                                    code,
-                                    response_id=response_id
-                                   ).packet
-    elif isinstance(code, int):
-        return JSONRPCError(code,
-                            JSON_RPC_PREDEFINED_ERRORS[str(code)],
-                            response_id=response_id
-                           ).packet
