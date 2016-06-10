@@ -398,7 +398,7 @@ class JSONRPCRequest:
                             then it MUST BE None
         'method':       REQUIRED, str of remote method that the server will
                             execute
-        'parameters':   OPTIONAL, must be type list or dict
+        'params':       OPTIONAL, must be type list or dict
     """
     response_id = 0
     packet = {
@@ -425,22 +425,34 @@ class JSONRPCRequest:
                                    " 'response_id': '{}'. Must be type"
                                    " int".format(type(response_id)))
         if isinstance(method, str):
-            self.method = method
+            if not method.startswith("rpc."):
+                self.method = method
+            else:
+                raise JSONRPCException(
+                    "'method' value '{}' starts with reserved for internal"
+                    " JSON-RPC use value 'rpc.'".format(method)
+                )
         else:
             raise JSONRPCException("Unexpected data type for argument"
                                    " 'method': '{}'. Must be type"
                                    " str".format(type(method)))
-        if params is not None:
-            if isinstance(params, (str, dict)):
-                success, data = _check_valid_json(params)
-                if success:
-                    self.params = data
-            elif isinstance(params, list):
-                self.params = params
+
+        if isinstance(params, (str, dict)):
+            success, data = _check_valid_json(params)
+            if success:
+                self.params = data
             else:
-                raise JSONRPCException("Unexpected data type for argument"
-                                       " 'params': '{}'. Must be type list or"
-                                       " dict".format(type(params)))
+                raise JSONRPCException(
+                    "Errors occured while parsing JSON:\n{}".format(params)
+                )
+        elif isinstance(params, list):
+            self.params = params
+        elif params is None:
+            self.params = None
+        else:
+            raise JSONRPCException("Unexpected data type for argument"
+                                   " 'params': '{}'. Must be type list or"
+                                   " dict".format(type(params)))
 
         # Made it passed the if statement successfully, let's create the packet
         self.packet["method"] = self.method
@@ -552,14 +564,14 @@ class JSONRPCError:
     """
     JSON-RPC Error object
     Arguments:
-        'id':       REQUIRED, otherwise it will be set to None/NULL
-        'code':     Required when creating a JSON-RPC Error object
-                        MUST be type int, indicates error type
-        'message':  Required when creating a JSON-RPC Error object
-                        MUST be type str, short description of the error
-        'data':     Required when creating a JSON-RPC Error object
-                        type str or dict, contains additional information
-                        about the error
+        'response_id':      REQUIRED, otherwise it will be set to None/NULL
+        'code':             Required when creating a JSON-RPC Error object
+                                MUST be type int, indicates error type
+        'message':          Required when creating a JSON-RPC Error object
+                                MUST be type str, short desc. of the error
+        'data':             Required when creating a JSON-RPC Error object
+                                type str or dict, contains additional info
+                                about the error
     """
     response_id = 0
     packet = {
@@ -602,7 +614,8 @@ class JSONRPCError:
             "message": self.message
         }
 
-        if isinstance(data, dict):
+        if isinstance(data, (dict, str)):
+            success, data = _check_valid_json(data)
             self.data = data
             self.packet["error"]["data"] = self.data
 
@@ -620,9 +633,8 @@ class JSONRPCError:
             self.data = ""
 
         else:
-            raise JSONRPCException("Unexpected data type for error {}".format(
-                str(type(data))
-            ))
+            raise JSONRPCException("Unexpected data type for error -"
+                                   " type '{}'".format(str(type(data))))
 
     def return_packet(self):
         """
