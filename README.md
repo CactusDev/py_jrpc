@@ -5,7 +5,7 @@ A Python 3 module that provides packet generation and compliance checking for th
 
 json_rpc is a fairly simple module that provides packet generation and compliance checking for the JSON-RPC 2.0 specification.
 
-### Compliance checking
+## Compliance checking
 
 For example, if you wanted to check if some JSON you have is compliant with JSON-RPC, you would do something like this:
 
@@ -34,7 +34,7 @@ else:
 
 It's that simple!
 
-### Packet generation
+## Packet generation
 
 json_rpc can also generate JSON-RPC compliant packets for you!
 
