@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
     name="json_rpc",
     packages=["json_rpc"],
-    version="0.2",
+    version="0.3",
     description="A Python 3 module that provides packet generation and "
                 "validation for the JSON-RPC 2.0 specification",
     author="RPiAwesomeness",

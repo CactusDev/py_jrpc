@@ -141,7 +141,7 @@ print(result_packet)
 
 ### Notification example
 
-You can also generate notification packets by simply creating a request object like we did previously, but without the response_id argument and with setting the is_notif argument to True
+You can also generate notification packets by simply creating a request object like we did previously, but without the `response_id` argument and with setting the `is_notif` argument to True
 
 ```python
 import json_rpc
