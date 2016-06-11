@@ -2,12 +2,7 @@
 Test cases for the JSON-RPC module
 
 Perfect 10.00/10 pylint score!
-"""
 
-import json_rpc
-from json_rpc import JSONRPCTypes, JSONRPCException
-
-"""
 The MIT License (MIT)
 
 Copyright (c) 2016 RPiAwesomneness
@@ -31,13 +26,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import json_rpc
+from json_rpc import JSONRPCTypes, JSONRPCException
 
-def print_results(success, errors, should_pass=True, type=None):
-    if type is not None:
-        print("Type:\t", type)
-    print("Pass:\t", success)
+
+def print_results(did_pass, errors, should_pass=True, packet_type=None):
+    """
+    Prints test-case results in a standardized manner
+    """
+    if packet_type is not None:
+        print("Type:\t", packet_type)
+    print("Pass:\t", did_pass)
     print("Errors:  {}".format(errors))
-    print("Success: {}\n".format(success == should_pass))
+    print("Success: {}\n".format(did_pass == should_pass))
     print("---------------------------------------------------------")
 
 
@@ -45,8 +46,8 @@ def run_validate_test(packet, j_type, should_pass=True):
     """
     Takes the data for the test case and displays output
     """
-    success, errors = json_rpc.verify_packet(packet, j_type)
-    print_results(success, errors, should_pass=should_pass)
+    did_pass, errors = json_rpc.verify_packet(packet, j_type)
+    print_results(did_pass, errors, should_pass=should_pass)
 
 
 # ---------------------------------------------------
@@ -55,7 +56,7 @@ def run_validate_test(packet, j_type, should_pass=True):
 VERIFY_VALIDATE = []
 
 # Create the packet in dict form
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "result": "Success! It's working!"
@@ -68,52 +69,52 @@ test = {
 #       REQUIRED
 #   should_pass: Boolean on whether or not it *should* pass)
 #       REQUIRED - set to None if unknown what result should be
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, True))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, True))
 
 # Fail (incorrect jsonrpc value)
-test = {
+TEST = {
     "jsonrpc": "3.0",
     "id": 13,
     "result": "Success! It's working!"
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # Fail (incorrect jsonrpc value, missing key "id")
-test = {
+TEST = {
     "jsonrpc": "3.0",
     "result": "Success! It's working!"
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 
 # Fail (missing key "jsonrpc", missing key "result")
-test = {
+TEST = {
     "id": 13,
     "resul": "Success! It's working!"
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 
 # Fail (missing key "id")
-test = {
+TEST = {
     "jsonrpc": "2.0",
     # "id": 13,
     "result": "Success! It's working!"
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 
 # Fail (missing key "jsonrpc", missing key "id", missing key "result")
-test = {
+TEST = {
     # "jsonrpc": "2.0",
     # "id": 13,
     # "result": "Success! It's working!"
     "spam": "eggs"
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # Pass
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "error": {
@@ -121,10 +122,10 @@ test = {
         "message": "Invalid Request"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, True))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, True))
 
 # Fail (incorrect error code)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "error": {
@@ -132,10 +133,10 @@ test = {
         "message": "Invalid Request"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # Fail (missing both "error" and "result" keys)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     # "error": {
@@ -143,10 +144,10 @@ test = {
     #     "message": "Invalid Request"
     # }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # Fail (missing error message)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "error": {
@@ -154,10 +155,10 @@ test = {
         # "message": "Invalid Request"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # Fail (missing error code)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "error": {
@@ -165,10 +166,10 @@ test = {
         "message": "Invalid Request"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # Fail (both "error" and "result" are included)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "error": {
@@ -177,10 +178,10 @@ test = {
     },
     "result": "Success!"
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # Fail (error code isn't type int)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "error": {
@@ -188,10 +189,10 @@ test = {
         "message": "Invalid Request"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # Fail (error code is in range of reserved JSON-RPC codes)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "error": {
@@ -199,7 +200,7 @@ test = {
         "message": "Invalid Request"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 
 # ---------------------------------------------------
 # Notification tests
@@ -225,43 +226,46 @@ VERIFY_VALIDATE.append((test, JSONRPCTypes.RESPONSE, False))
 #                           )
 
 # Pass
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "method": "notify:queen_of_england",
     "params": {
         "crown": "Has been stolen"
-    }
+    },
+    "is_notif": True
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.NOTIF, True))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.NOTIF, True))
 
 # Fail (notification cannot include an 'id' key)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "method": "notify:queen_of_england",
     "params": {
         "crown": "Has been stolen"
-    }
+    },
+    "is_notif": True
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.NOTIF, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.NOTIF, False))
 
 # Fail (missing required 'method' key, notification cannot include an 'id' key)
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     # "method": "notify:queen_of_england",
     "params": {
         "crown": "Has been stolen"
-    }
+    },
+    "is_notif": True
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.NOTIF, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.NOTIF, False))
 
 # ---------------------------------------------------
 # Request tests
 # ---------------------------------------------------
 
 # Pass
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "method": "notify:queen_of_england",
@@ -269,10 +273,10 @@ test = {
         "crown": "Has been stolen"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.REQUEST, True))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.REQUEST, True))
 
 # Fail (missing ID, missing required key 'method')
-test = {
+TEST = {
     "jsonrpc": "2.0",
     # "id": 13,
     # "method": "notify:queen_of_england",
@@ -280,10 +284,10 @@ test = {
         "crown": "Has been stolen"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.REQUEST, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.REQUEST, False))
 
 # Fail (method starts with JSON-RPC reserved for internal use value 'rpc.')
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "method": "rpc.queen_of_england",
@@ -291,32 +295,32 @@ test = {
         "crown": "Has been stolen"
     }
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.REQUEST, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.REQUEST, False))
 
 # Fail ('params' key isn't structured type (list or dict))
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "method": "notify:queen_of_england",
     "params": "The crown has been stolen!"
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.REQUEST, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.REQUEST, False))
 
 # Fail ('method' key isn't type str,
 #       'params' key isn't structured type (list or dict))
-test = {
+TEST = {
     "jsonrpc": "2.0",
     "id": 13,
     "method": 14,
     "params": "The crown has been stolen!"
 }
-VERIFY_VALIDATE.append((test, JSONRPCTypes.REQUEST, False))
+VERIFY_VALIDATE.append((TEST, JSONRPCTypes.REQUEST, False))
 
 # ---------------------------------------
-# Begin running test cases
+# Begin running TEST cases
 # ---------------------------------------
-for test in VERIFY_VALIDATE:
-    run_validate_test(test[0], test[1], should_pass=test[2])
+for TEST in VERIFY_VALIDATE:
+    run_validate_test(TEST[0], TEST[1], should_pass=TEST[2])
 
 # ---------------------------------------
 # Begin testing of packet creation
@@ -333,7 +337,7 @@ VERIFY_CREATE_ERROR = []
 #   as the second value in the tuple as to whether or not it should pass
 
 # Pass
-test = {
+TEST = {
     "response_id": 1,
     "method": "spam:eggs",
     "params": {
@@ -341,28 +345,28 @@ test = {
         "towel": 42
     }
 }
-should_pass = True
-VERIFY_CREATE_REQUEST.append((test, should_pass))
+SHOULD_PASS = True
+VERIFY_CREATE_REQUEST.append((TEST, SHOULD_PASS))
 
 # Pass
-test = {
+TEST = {
     "response_id": 1,
     "method": "spam:eggs",
     "params": ["spam", "beautiful", "spam"]
 }
-should_pass = True
-VERIFY_CREATE_REQUEST.append((test, should_pass))
+SHOULD_PASS = True
+VERIFY_CREATE_REQUEST.append((TEST, SHOULD_PASS))
 
 # Pass
-test = {
+TEST = {
     "response_id": 1,
     "method": "spam:eggs",
 }
-should_pass = True
-VERIFY_CREATE_REQUEST.append((test, should_pass))
+SHOULD_PASS = True
+VERIFY_CREATE_REQUEST.append((TEST, SHOULD_PASS))
 
 # Fail (response_id is a str)
-test = {
+TEST = {
     "response_id": "YOU SHALL NOT PASS!",
     "method": "spam:eggs",
     "params": {
@@ -370,11 +374,11 @@ test = {
         "towel": 42
     }
 }
-should_pass = False
-VERIFY_CREATE_REQUEST.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_REQUEST.append((TEST, SHOULD_PASS))
 
 # Fail (method starts with JSON-RPC reserved string 'rpc.')
-test = {
+TEST = {
     "response_id": 1,
     "method": "rpc.spam",
     "params": {
@@ -382,11 +386,11 @@ test = {
         "towel": 42
     }
 }
-should_pass = False
-VERIFY_CREATE_REQUEST.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_REQUEST.append((TEST, SHOULD_PASS))
 
 # Fail (method is type list)
-test = {
+TEST = {
     "response_id": 1,
     "method": ["spam", "eggs"],
     "params": {
@@ -394,15 +398,15 @@ test = {
         "towel": 42
     }
 }
-should_pass = False
-VERIFY_CREATE_REQUEST.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_REQUEST.append((TEST, SHOULD_PASS))
 
 # ---------------------------------------
 # Error creation
 # ---------------------------------------
 
 # Pass
-test = {
+TEST = {
     "response_id": 1,
     "code": 200,
     "message": "Success",
@@ -410,11 +414,11 @@ test = {
         "innectic": "java < python"
     }
 }
-should_pass = True
-VERIFY_CREATE_ERROR.append((test, should_pass))
+SHOULD_PASS = True
+VERIFY_CREATE_ERROR.append((TEST, SHOULD_PASS))
 
 # Pass
-test = {
+TEST = {
     "response_id": 1,
     "code": 200,
     "message": "Success",
@@ -422,11 +426,11 @@ test = {
         "spam", "eggs", "foo", "bar"
     ]
 }
-should_pass = True
-VERIFY_CREATE_ERROR.append((test, should_pass))
+SHOULD_PASS = True
+VERIFY_CREATE_ERROR.append((TEST, SHOULD_PASS))
 
 # Fail (missing required 'code' key)
-test = {
+TEST = {
     "response_id": 1,
     # "code": 200,
     "message": "Success",
@@ -434,11 +438,11 @@ test = {
         "spam", "eggs", "foo", "bar"
     ]
 }
-should_pass = False
-VERIFY_CREATE_ERROR.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_ERROR.append((TEST, SHOULD_PASS))
 
 # Fail (missing required 'code' & 'message' keys)
-test = {
+TEST = {
     "response_id": 1,
     # "code": 200,
     # "message": "Success",
@@ -446,11 +450,11 @@ test = {
         "spam", "eggs", "foo", "bar"
     ]
 }
-should_pass = False
-VERIFY_CREATE_ERROR.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_ERROR.append((TEST, SHOULD_PASS))
 
 # Fail ('code' key is not type int)
-test = {
+TEST = {
     "response_id": 1,
     "code": "200",
     "message": "Success",
@@ -458,11 +462,11 @@ test = {
         "spam", "eggs", "foo", "bar"
     ]
 }
-should_pass = False
-VERIFY_CREATE_ERROR.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_ERROR.append((TEST, SHOULD_PASS))
 
 # Fail (code is predefined JSON-RPC error, but message doesn't match)
-test = {
+TEST = {
     "response_id": 1,
     "code": -32700,
     "message": "Success",
@@ -470,11 +474,11 @@ test = {
         "spam", "eggs", "foo", "bar"
     ]
 }
-should_pass = False
-VERIFY_CREATE_ERROR.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_ERROR.append((TEST, SHOULD_PASS))
 
 # Fail (code is in JSON-RPC reserved range)
-test = {
+TEST = {
     "response_id": 1,
     "code": -32000,
     "message": "Success",
@@ -482,84 +486,84 @@ test = {
         "spam", "eggs", "foo", "bar"
     ]
 }
-should_pass = False
-VERIFY_CREATE_ERROR.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_ERROR.append((TEST, SHOULD_PASS))
 
 # ---------------------------------------
 # Result creation
 # ---------------------------------------
 
 # Pass
-test = {
+TEST = {
     "response_id": 13,
     "result": "Success! It's working!"
 }
-should_pass = True
-VERIFY_CREATE_RESULT.append((test, should_pass))
+SHOULD_PASS = True
+VERIFY_CREATE_RESULT.append((TEST, SHOULD_PASS))
 
 # Pass
-test = {
+TEST = {
     "response_id": 13,
     "result": {
         "sucess": True,
         "message": "Success! It's working!"
     }
 }
-should_pass = True
-VERIFY_CREATE_RESULT.append((test, should_pass))
+SHOULD_PASS = True
+VERIFY_CREATE_RESULT.append((TEST, SHOULD_PASS))
 
 # Fail (id is not type int)
-test = {
+TEST = {
     "response_id": "foo bar",
     "result": "Success! It's working!"
 }
-should_pass = False
-VERIFY_CREATE_RESULT.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_RESULT.append((TEST, SHOULD_PASS))
 
 # Fail (result isn't type dict or str)
-test = {
+TEST = {
     "response_id": 13,
     "result": b"Success! It's working!"
 }
-should_pass = False
-VERIFY_CREATE_RESULT.append((test, should_pass))
+SHOULD_PASS = False
+VERIFY_CREATE_RESULT.append((TEST, SHOULD_PASS))
 # ---------------------------------------
-# Run the tests
+# Run the TESTs
 # ---------------------------------------
 
 
-for test in VERIFY_CREATE_REQUEST:
+for TEST in VERIFY_CREATE_REQUEST:
     error = None
     try:
-        json_rpc.JSONRPCRequest(**test[0])
+        json_rpc.JSONRPCRequest(**TEST[0])
         success = True
     except (JSONRPCException, TypeError) as exception:
         success = False
         error = exception
     finally:
-        print_results(success, error, test[1], "REQUEST")
+        print_results(success, error, TEST[1], "REQUEST")
 
-for test in VERIFY_CREATE_ERROR:
+for TEST in VERIFY_CREATE_ERROR:
     error = None
     try:
-        json_rpc.JSONRPCError(**test[0])
+        json_rpc.JSONRPCError(**TEST[0])
         success = True
     except (JSONRPCException, TypeError) as exception:
         success = False
         error = exception
     finally:
-        print_results(success, error, test[1], "ERROR")
+        print_results(success, error, TEST[1], "ERROR")
 
-for test in VERIFY_CREATE_RESULT:
+for TEST in VERIFY_CREATE_RESULT:
     error = None
     try:
-        json_rpc.JSONRPCResult(**test[0])
+        json_rpc.JSONRPCResult(**TEST[0])
         success = True
     except (JSONRPCException, TypeError) as exception:
         success = False
         error = exception
     finally:
-        print_results(success, error, test[1], "RESULT")
+        print_results(success, error, TEST[1], "RESULT")
 
 # Will return JSON-RPC Error packet for code -32700
 print(json_rpc.generate_error_packet(-32700))

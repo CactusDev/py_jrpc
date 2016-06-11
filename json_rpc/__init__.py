@@ -3,13 +3,7 @@ A simple JSON-RPC 2.0 module for Python 3
 Created by RPiAwesomneness for use with the CactusBot project
 
 Perfect 10.00/10 pylint score!
-"""
 
-import json
-from json import JSONDecodeError
-import enum
-
-"""
 The MIT License (MIT)
 
 Copyright (c) 2016 RPiAwesomneness
@@ -32,6 +26,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+import json
+from json import JSONDecodeError
+import enum
 
 
 JSON_RPC_PREDEFINED_ERRORS = {
@@ -359,7 +357,7 @@ def generate_error_packet(code, response_id=None):
     """
     if isinstance(code, str):
         for error in JSON_RPC_PREDEFINED_ERRORS:
-            if code == JSON_RPC_PREDEFINED_ERRORS[error]:
+            if code.lower() == JSON_RPC_PREDEFINED_ERRORS[error].lower():
                 return JSONRPCError(int(error),
                                     code,
                                     response_id=response_id
@@ -399,6 +397,8 @@ class JSONRPCRequest:
         'method':       REQUIRED, str of remote method that the server will
                             execute
         'params':       OPTIONAL, must be type list or dict
+        'is_notif':     OPTIONAL, tells whether or not this request packet
+                            will be a notification
     """
     response_id = 0
     packet = {
@@ -406,28 +406,28 @@ class JSONRPCRequest:
         "id": response_id
     }
 
-    def __init__(self, method, params=None, response_id=None):
+    def __init__(self, method, params=None, response_id=None, is_notif=False):
         """
         Create a JSON-RPC Request object
         Returns nothing on success, otherwise JSONRPCException is raised
         """
         self.type = "Request"
+        self.response_id = None
 
         # Set the packet's ID correctly, or raise exception if not int/None
         if isinstance(response_id, int):
             self.response_id = response_id
             self.packet["id"] = self.response_id
-        elif response_id is None:
-            self.response_id = None
+        elif response_id is None and not is_notif:
             self.packet["id"] = self.response_id
+            # Don't include it in the packet
         else:
             raise JSONRPCException("Unexpected data type for argument"
                                    " 'response_id': '{}'. Must be type"
                                    " {}".format(type(response_id), int))
         if isinstance(method, str):
+            self.method = method
             if not method.startswith("rpc."):
-                self.method = method
-            else:
                 raise JSONRPCException(
                     "'method' value '{}' starts with reserved for internal"
                     " JSON-RPC use value 'rpc.'".format(method)
@@ -466,10 +466,17 @@ class JSONRPCRequest:
         """
         success, result = _verify_request_contents(self.packet)
 
-        if success:
-            return True, self.packet, None
-        else:
-            return False, self.packet, result
+        to_return = (
+            True,
+            self.packet,
+            None
+            ) if success else (
+                False,
+                self.packet,
+                result
+            )
+
+        return to_return
 
     def update_packet(self, **kwargs):
         """
@@ -628,8 +635,11 @@ class JSONRPCError:
 
         if isinstance(data, (dict, str)):
             success, data = _check_valid_json(data)
-            self.data = data
-            self.packet["error"]["data"] = self.data
+            if success:
+                self.data = data
+                self.packet["error"]["data"] = self.data
+            else:
+                raise JSONRPCException(data)
 
         elif isinstance(data, str):
             try:
