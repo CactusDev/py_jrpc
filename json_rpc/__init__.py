@@ -423,7 +423,7 @@ class JSONRPCRequest:
         else:
             raise JSONRPCException("Unexpected data type for argument"
                                    " 'response_id': '{}'. Must be type"
-                                   " int".format(type(response_id)))
+                                   " {}".format(type(response_id), int))
         if isinstance(method, str):
             if not method.startswith("rpc."):
                 self.method = method
@@ -435,7 +435,7 @@ class JSONRPCRequest:
         else:
             raise JSONRPCException("Unexpected data type for argument"
                                    " 'method': '{}'. Must be type"
-                                   " str".format(type(method)))
+                                   " {}".format(type(method), str))
 
         if isinstance(params, (str, dict)):
             success, data = _check_valid_json(params)
@@ -451,8 +451,8 @@ class JSONRPCRequest:
             self.params = None
         else:
             raise JSONRPCException("Unexpected data type for argument"
-                                   " 'params': '{}'. Must be type list or"
-                                   " dict".format(type(params)))
+                                   " 'params': '{}'. Must be type {} or"
+                                   " {}".format(type(params), list, dict))
 
         # Made it passed the if statement successfully, let's create the packet
         self.packet["method"] = self.method
@@ -460,10 +460,16 @@ class JSONRPCRequest:
 
     def return_packet(self):
         """
-        Simple method to satisfy pylint
-        Just returns the JSON-RPC packet
+        Returns the generated JSON-RPC packet after validating it
+        Returns True, packet, None if it validates,
+                otherwise False, packet, errors
         """
-        return self.packet
+        success, result = _verify_request_contents(self.packet)
+
+        if success:
+            return True, self.packet, None
+        else:
+            return False, self.packet, result
 
     def update_packet(self, **kwargs):
         """
@@ -516,7 +522,7 @@ class JSONRPCResult:
         else:
             raise JSONRPCException("Unexpected data type for argument"
                                    " 'response_id': '{}'. Must be type"
-                                   " int".format(type(response_id)))
+                                   " {}".format(type(response_id), int))
 
         if isinstance(result, dict):
             self.data = result
@@ -536,10 +542,16 @@ class JSONRPCResult:
 
     def return_packet(self):
         """
-        Simple method to satisfy pylint
-        Just returns the JSON-RPC packet
+        Returns the generated JSON-RPC packet after validating it
+        Returns True, packet, None if it validates,
+                otherwise False, packet, errors
         """
-        return self.packet
+        success, result = _verify_request_contents(self.packet)
+
+        if success:
+            return True, self.packet, None
+        else:
+            return False, self.packet, result
 
     def update_packet(self, **kwargs):
         """
@@ -596,15 +608,15 @@ class JSONRPCError:
         else:
             raise JSONRPCException("Unexpected data type for argument"
                                    " 'response_id': '{}'. Must be type"
-                                   " int".format(type(response_id)))
+                                   " {}".format(type(response_id), int))
 
         if isinstance(code, int) is not True or code is None:
-            raise JSONRPCException("code parameter for error MUST be type  \
-                                   int!")
+            raise JSONRPCException("code parameter for error MUST be"
+                                   " type {}!".format(int))
 
         if code is None and isinstance(message, str) is not True:
-            raise JSONRPCException("message parameter for error MUST be type \
-                                   str!")
+            raise JSONRPCException("message parameter for error MUST be"
+                                   " type {}!".format(str))
 
         self.code = code
         self.message = message
@@ -638,10 +650,16 @@ class JSONRPCError:
 
     def return_packet(self):
         """
-        Simple method to satisfy pylint
-        Just returns the JSON-RPC packet
+        Returns the generated JSON-RPC packet after validating it
+        Returns True, packet, None if it validates,
+                otherwise False, packet, errors
         """
-        return self.packet
+        success, result = _verify_request_contents(self.packet)
+
+        if success:
+            return True, self.packet, None
+        else:
+            return False, self.packet, result
 
     def update_packet(self, **kwargs):
         """
