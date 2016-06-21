@@ -26,8 +26,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import py_jrpc
-from py_jrpc import JSONRPCTypes, JSONRPCException
+import jrpc_helper
+from jrpc_helper import JSONRPCTypes, JSONRPCException
 
 
 def print_results(did_pass, errors, should_pass=True, packet_type=None):
