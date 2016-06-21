@@ -46,7 +46,7 @@ def run_validate_test(packet, j_type, should_pass=True):
     """
     Takes the data for the test case and displays output
     """
-    did_pass, errors = json_rpc.verify_packet(packet, j_type)
+    did_pass, errors = jrpc_helper.verify_packet(packet, j_type)
     print_results(did_pass, errors, should_pass=should_pass)
 
 
@@ -218,7 +218,7 @@ VERIFY_VALIDATE.append((TEST, JSONRPCTypes.RESPONSE, False))
 #     }
 # }
 # would be equivalen to:
-#   json_rpc.JSONRPCRequest(json_rpc="2.0",
+#   jrpc_helper.JSONRPCRequest(jrpc_helper="2.0",
 #                           method="notify:queen_of_england",
 #                           params={
 #                               "crown": "Has been stolen"
@@ -535,7 +535,7 @@ VERIFY_CREATE_RESULT.append((TEST, SHOULD_PASS))
 for TEST in VERIFY_CREATE_REQUEST:
     error = None
     try:
-        json_rpc.JSONRPCRequest(**TEST[0])
+        jrpc_helper.JSONRPCRequest(**TEST[0])
         success = True
     except (JSONRPCException, TypeError) as exception:
         success = False
@@ -546,7 +546,7 @@ for TEST in VERIFY_CREATE_REQUEST:
 for TEST in VERIFY_CREATE_ERROR:
     error = None
     try:
-        json_rpc.JSONRPCError(**TEST[0])
+        jrpc_helper.JSONRPCError(**TEST[0])
         success = True
     except (JSONRPCException, TypeError) as exception:
         success = False
@@ -557,7 +557,7 @@ for TEST in VERIFY_CREATE_ERROR:
 for TEST in VERIFY_CREATE_RESULT:
     error = None
     try:
-        json_rpc.JSONRPCResult(**TEST[0])
+        jrpc_helper.JSONRPCResult(**TEST[0])
         success = True
     except (JSONRPCException, TypeError) as exception:
         success = False
@@ -566,6 +566,6 @@ for TEST in VERIFY_CREATE_RESULT:
         print_results(success, error, TEST[1], "RESULT")
 
 # Will return JSON-RPC Error packet for code -32700
-print(json_rpc.generate_error_packet(-32700))
+print(jrpc_helper.generate_error_packet(-32700))
 # Will return JSON-RPC Error packet for "Invalid Request"
-print(json_rpc.generate_error_packet("Invalid Request"))
+print(jrpc_helper.generate_error_packet("Invalid Request"))

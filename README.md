@@ -1,16 +1,16 @@
-# py_jrpc
+# jrpc_helper
 A Python 3 module that provides packet generation and compliance checking for the JSON-RPC 2.0 specification
 
 ## Usage:
 
-py_jrpc is a fairly simple module that provides packet generation and compliance checking for the JSON-RPC 2.0 specification.
+jrpc_helper is a fairly simple module that provides packet generation and compliance checking for the JSON-RPC 2.0 specification.
 
 ## Compliance checking
 
 For example, if you wanted to check if some JSON you have is compliant with JSON-RPC, you would do something like this:
 
 ```python
-import py_jrpc
+import jrpc_helper
 
 # Let's check a JSON packet!
 to_test = {
@@ -22,7 +22,7 @@ to_test = {
     }
 }
 
-success, errors = py_jrpc.verify_packet(to_test, py_jrpc.JSONRPCTypes.REQUEST)
+success, errors = jrpc_helper.verify_packet(to_test, jrpc_helper.JSONRPCTypes.REQUEST)
 
 if success == True:
     print("Success! This is a JSON-RPC compliant packet!")
@@ -36,12 +36,12 @@ It's that simple!
 
 ## Packet generation
 
-py_jrpc can also generate JSON-RPC compliant packets for you!
+jrpc_helper can also generate JSON-RPC compliant packets for you!
 
 #### Result Example
 
 ```python
-import py_jrpc
+import jrpc_helper
 
 result_data = {
     "spam": "eggs",
@@ -49,7 +49,7 @@ result_data = {
 }
 
 # Create the JSONRPCResult object
-result = py_jrpc.JSONRPCResult(result_data, response_id=2)
+result = jrpc_helper.JSONRPCResult(result_data, response_id=2)
 
 # Let's access our newly generated packet
 result_packet = result.packet
@@ -71,7 +71,7 @@ print(result_packet)
 This also works for generating errors!
 
 ```python
-import py_jrpc
+import jrpc_helper
 
 error_data = {
     "foo": "bar",
@@ -79,7 +79,7 @@ error_data = {
 }
 
 # Create the JSONRPCResult object
-result = py_jrpc.JSONRPCError(
+result = jrpc_helper.JSONRPCError(
                                 200,
                                 "The warp drive didn't engage!",
                                 data=error_data,
@@ -107,7 +107,7 @@ print(result_packet)
 You can also generate request packets!
 
 ```python
-import py_jrpc
+import jrpc_helper
 
 request_params = {
     "one_ring": [
@@ -117,7 +117,7 @@ request_params = {
 }
 
 # Create the JSONRPCResult object, but this time it's a notification
-result = py_jrpc.JSONRPCResult("check:frodo_baggins",
+result = jrpc_helper.JSONRPCResult("check:frodo_baggins",
                                 request_params,
                                 response_id=2)
 
@@ -144,7 +144,7 @@ print(result_packet)
 You can also generate notification packets by simply creating a request object like we did previously, but without the `response_id` argument and with setting the `is_notif` argument to True
 
 ```python
-import py_jrpc
+import jrpc_helper
 
 request_params = {
     "one_ring": [
@@ -154,7 +154,7 @@ request_params = {
 }
 
 # Create the JSONRPCResult object, but this time it's a notification, so set is_notif to True
-result = py_jrpc.JSONRPCResult("check:frodo_baggins",
+result = jrpc_helper.JSONRPCResult("check:frodo_baggins",
                                 request_params,
                                 is_notif=True)
 
@@ -188,7 +188,7 @@ request_params = {
 }
 
 # Create the JSONRPCResult object
-result = py_jrpc.JSONRPCResult("check:Aragorn",
+result = jrpc_helper.JSONRPCResult("check:Aragorn",
                                 request_params,
                                 response_id=2)
 
@@ -222,13 +222,13 @@ print(errors)
 There are several JSON-RPC error packets built in to the module that are easily accessible for drop in use!
 
 ```python
-import py_jrpc
+import jrpc_helper
 
 # Let's say you wanted an "Invalid Request" error packet
 # You can do this both by the error string (case insensitive)
-packet = py_jrpc.generate_error_packet("Invalid request")
+packet = jrpc_helper.generate_error_packet("Invalid request")
 # OR by the ID
-packet = py_jrpc.generate_error_packet(-32600)
+packet = jrpc_helper.generate_error_packet(-32600)
 
 print(packet)
 # Output:
