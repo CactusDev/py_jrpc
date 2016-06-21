@@ -8,7 +8,7 @@ setup(
     author="RPiAwesomeness",
     author_email="keyboadmailtesting@gmail.com",
     url="https://github.com/CactusBot/py_jrpc",
-    download_url="https://github.com/peterldowns/mypackage/tarball/0.1",
+    download_url="https://github.com/CactusBot/py_jrpc/tarball/0.1",
     keywords=["json", "rpc", "packet", "data"],
     classifiers=[],
 )
